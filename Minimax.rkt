@@ -2,10 +2,10 @@
 ;Esteban Cruz López
 (define-struct EstadoTablero (posicionesFichas))
 (define-struct Nodo (hijos estadoTablero utilidad) #:transparent #:mutable ) ;Nodo estado de tablero
+(define (esTerminal? estado) (empty? (Nodo-hijos estado)))
 
 (define (Result raiz v) (for ([hijo (Nodo-hijos raiz)]#:when (= (Utility hijo)(Utility v))) (set! v hijo)) v)
 (define (Alpha-Beta-Search nodo) (Result nodo (MAX nodo -inf.0 +inf.0)))
-(define (esTerminal? estado) (empty? (Nodo-hijos estado)))
 
 (define (MAX estado alpha beta)
     (if (esTerminal? estado) estado
