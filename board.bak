@@ -2,7 +2,6 @@
 #lang racket/gui
 (require embedded-gui)
 
-;; Super clase de las fichas
 (define chess-piece-snip-class
   (make-object
    (class snip-class%
@@ -10,10 +9,7 @@
      (send this set-classname "chess-piece-snip"))))
 
 (send (get-the-snip-class-list) add chess-piece-snip-class)
-;; -----------------------------------------------------------
 
-
-;; Clase de la pieza
 (define chess-piece%
   (class snip%
     (init-field glyph font size [location #f])
@@ -40,25 +36,17 @@
             (oy (/ (- size glyph-height 2))))
         (send dc draw-text glyph (+ x ox) (+ y oy))))
     ))
-;; -------------------------------------------------------------
 
-;; datos unicode clave-valor de cada una de las fichas
 (define chess-piece-data
   (hash
-   "A" #\u2727 "B" #\u2727 "C" #\u2727 "D" #\u2727 "E" #\u2727 "F" #\u2727 "G" #\u2727 "H" #\u2727 "I" #\u2727 "J" #\u2727 "K" #\u2727
-   "a" #\u2726 "b" #\u2726 "c" #\u2726 "d" #\u2726  "e" #\u2726 "f" #\u2726 "g" #\u2726 "h" #\u2726 "i" #\u2726 "j" #\u2726 "k" #\u2726))
-;; -------------------------------------------------------------
+   "M" #\u2727
+   "m" #\u2726))
 
-
-;; Funcion para la creacion de las fichas 
 (define (make-chess-piece id [location #f])
   (define glyph (hash-ref chess-piece-data id))
   (define font (send the-font-list find-or-create-font 25 'default 'normal 'normal))
   (new chess-piece% [glyph (string glyph)] [font font] [size 35] [location location]))
-;; -------------------------------------------------------------
 
-
-;; Clase tablero
 (define chess-board%
   (class pasteboard%
     (super-new)
@@ -82,9 +70,6 @@
       (send this end-edit-sequence))
 
     ))
-;; ------------------------------------------------------------
-
-
 
 (define (position-piece board piece)
   (define-values (canvas-width canvas-height)
@@ -102,25 +87,20 @@
         (+ square-x (/ (- square-width piece-width) 2))
         (+ square-y (/ (- square-height piece-height) 2))))
 
-
-;; Funcion para definir las coordenadas en el tablero
 (define (location->rank-file location)
   (unless (and (string? location) (= (string-length location) 2))
-    (raise-argument-error 'location "valid  position a1 .. h8" location))
+    (raise-argument-error 'location "valid chess position a1 .. h8" location))
   (define file
     (index-of '(#\a #\b #\c #\d #\e #\f #\g #\h #\i) (string-ref location 0)))
   (define rank
     (index-of '(#\9 #\8 #\7 #\6 #\5 #\4 #\3 #\2 #\1) (string-ref location 1)))
   (unless (and rank file)
-    (raise-argument-error 'location "valid  position a1 .. h8" location))
+    (raise-argument-error 'location "valid chess position a1 .. h8" location))
   (values rank file))
-;; ------------------------------------------------------------
 
-
-;; Funcion para dibujar el tablero
 (define (draw-chess-board dc)
-  (define brush (send the-brush-list find-or-create-brush "skyblue" 'solid))
-  (define pen (send the-pen-list find-or-create-pen "black" 2 'solid))
+  (define brush (send the-brush-list find-or-create-brush "red" 'solid))
+  (define pen (send the-pen-list find-or-create-pen "black" 1 'solid))
   (define font (send the-font-list find-or-create-font 9 'default 'normal 'normal))
   (define-values (dc-width dc-height) (send dc get-size))
   (define cell-width (/ dc-width 9))
@@ -138,17 +118,16 @@
     (define-values [x y] (values (* col cell-width) (* row cell-height)))
     (send dc draw-rectangle x y cell-width cell-height))
 
- ;; (for ([(rank index) (in-indexed '("9" "8" "7" "6" "5" "4" "3" "2" "1"))])
-  ;;  (define-values [_0 h _1 _2] (send dc get-text-extent rank font #t))
-  ;;  (define y (+ (* index cell-height) (- (/ cell-height 2) (/ h 2))))
-  ;;  (send dc draw-text rank margin y))
+  (for ([(rank index) (in-indexed '("9" "8" "7" "6" "5" "4" "3" "2" "1"))])
+    (define-values [_0 h _1 _2] (send dc get-text-extent rank font #t))
+    (define y (+ (* index cell-height) (- (/ cell-height 2) (/ h 2))))
+    (send dc draw-text rank margin y))
   
- ;; (for ([(file index) (in-indexed '("a" "b" "c" "d" "e" "f" "g" "h" "i"))])
-  ;;  (define-values [w h _1 _2] (send dc get-text-extent file font #t))
-  ;;  (define x (+ (* index cell-width) (- (/ cell-width 2) (/ w 2))))
-   ;; (send dc draw-text file x (- dc-height h margin))))
-)
-;; -------------------------------------------------------------
+  (for ([(file index) (in-indexed '("a" "b" "c" "d" "e" "f" "g" "h" "i"))])
+    (define-values [w h _1 _2] (send dc get-text-extent file font #t))
+    (define x (+ (* index cell-width) (- (/ cell-width 2) (/ w 2))))
+    (send dc draw-text file x (- dc-height h margin))))
+
 
 ;; A test program for our chess-piece% objects:
 
@@ -165,14 +144,13 @@
                     [editor board]))
 (send toplevel show #t)
 
-;; Variable de posiciones iniciales del tablero
 (define initial
   (string-append
-   "Aa1Bb1Cc1Dd1Ea2Fb2Gc2Ha3Ia4Jb3"
-   "ai9bh9cg9df9ei8fh8gg8hi7ih7ji6"))
+   "Ma1Mb1Mc1Md1Ma2Mb2Mc2Ma3Ma4Mb3"
+   "mi9mh9mg9mf9mi8mh8mg8mi7mh7mi6"))
 
 
-;; Funcion para iniciar el tablero y cada una de sus fichas
+
 (define (setup-board board position)
   (send board clear)
   (define piece-count (/ (string-length position) 3))
