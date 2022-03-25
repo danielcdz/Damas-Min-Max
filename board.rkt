@@ -103,14 +103,15 @@
         (+ square-y (/ (- square-height piece-height) 2))))
 
 
+
 ;; Funcion para definir las coordenadas en el tablero
 (define (location->rank-file location)
   (unless (and (string? location) (= (string-length location) 2))
     (raise-argument-error 'location "valid  position a1 .. h8" location))
   (define file
-    (index-of '(#\a #\b #\c #\d #\e #\f #\g #\h #\i) (string-ref location 0)))
+    (index-of '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8) (string-ref location 0)))
   (define rank
-    (index-of '(#\9 #\8 #\7 #\6 #\5 #\4 #\3 #\2 #\1) (string-ref location 1)))
+    (index-of '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8) (string-ref location 1)))
   (unless (and rank file)
     (raise-argument-error 'location "valid  position a1 .. h8" location))
   (values rank file))
@@ -150,6 +151,8 @@
 )
 ;; -------------------------------------------------------------
 
+
+
 ;; A test program for our chess-piece% objects:
 
 ;; The pasteboard% that will hold and manage the chess pieces
@@ -168,8 +171,8 @@
 ;; Variable de posiciones iniciales del tablero
 (define initial
   (string-append
-   "Aa1Bb1Cc1Dd1Ea2Fb2Gc2Ha3Ia4Jb3"
-   "ai9bh9cg9df9ei8fh8gg8hi7ih7ji6"))
+   "A80A81A82A83A70A71A72A60A61A50"
+   "b08b18b28b38b07b17b27b06b16b05"))
 
 
 ;; Funcion para iniciar el tablero y cada una de sus fichas
@@ -181,5 +184,18 @@
     (define name (substring position pos (add1 pos)))
     (define location (substring position (add1 pos) (+ (add1 pos) 2)))
     (send board insert (make-chess-piece name location))))
+
+(define Tablero (list 
+;     1 2 3 4 5 6 7 8 9
+(list 0 0 0 0 0 1 1 1 1); 1
+(list 0 0 0 0 0 0 1 1 1); 2
+(list 0 0 0 0 0 0 0 1 1); 3
+(list 0 0 0 0 0 0 0 0 1); 4
+(list 0 0 0 0 0 0 0 0 0); 5
+(list 2 0 0 0 0 0 0 0 0); 6
+(list 2 2 0 0 0 0 0 0 0); 7
+(list 2 2 2 0 0 0 0 0 0); 8
+(list 2 2 2 2 0 0 0 0 0); 9
+))
 
 (setup-board board initial)
