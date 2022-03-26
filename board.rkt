@@ -1,5 +1,6 @@
 
 #lang racket/gui
+
 (require embedded-gui)
 
 ;; Super clase de las fichas
@@ -45,8 +46,8 @@
 ;; datos unicode clave-valor de cada una de las fichas
 (define chess-piece-data
   (hash
-   "A" #\u2727 "B" #\u2727 "C" #\u2727 "D" #\u2727 "E" #\u2727 "F" #\u2727 "G" #\u2727 "H" #\u2727 "I" #\u2727 "J" #\u2727 "K" #\u2727
-   "a" #\u2726 "b" #\u2726 "c" #\u2726 "d" #\u2726  "e" #\u2726 "f" #\u2726 "g" #\u2726 "h" #\u2726 "i" #\u2726 "j" #\u2726 "k" #\u2726))
+   "A" #\u2727 
+  "b" #\u2726 ))
 ;; -------------------------------------------------------------
 
 
@@ -198,4 +199,27 @@
 (list 2 2 2 2 0 0 0 0 0); 9
 ))
 
-(setup-board board initial)
+;(define (EvaluarEstado tablero jugador)
+  ;(define valor 0)
+  ;(for ([x (build-list 9 values)][y (build-list 9 values)]#:when (= (get-ficha Tablero x y) jugador))
+  ;  (set! valor (+ valor (distancia x y jugador))))
+ ; valor)
+
+
+(define (tableroToString tablero)
+  (define res "")
+  (define ficha1 "A")
+  (define ficha2 "b")
+     (for* ([x (build-list 9 values)][y (build-list 9 values)])
+       (define dato ( list-ref( list-ref tablero x) y))
+       ;(print dato)
+       (if (equal? dato 1) (set! res(string-append res (string-append "b" (string-append (format "~v" x) (format "~v" y))) ))  1)
+       (if (equal? dato 2) (set! res(string-append res (string-append "A" (string-append (format "~v" x) (format "~v" y))) ))  2)
+       
+       ;(print ficha1)
+       )(print res)
+  res
+  )
+;(string-append res (format "~v" x)) (string-append res (format "~v" y))  (set! res(string-append res (format "~v" x))) (set! res (string-append res (format "~v" y))
+(tableroToString Tablero)
+(setup-board board (tableroToString Tablero))
