@@ -1,8 +1,9 @@
 #lang racket
 
+(require dyoo-while-loop)
 (define-struct EstadoTablero (posicionesFichas))
 (define-struct Nodo (hijos estadoTablero utilidad) #:transparent #:mutable ) 
-(define (esTerminal? estado) (empty? (Nodo-hijos estado)))
+(define (esTerminal? estado) (if (void? estado)(display "Puta madre\n")(empty? (Nodo-hijos estado))))
 
 (define (Result raiz v) (for ([hijo (Nodo-hijos raiz)]#:when (= (Utility hijo)(Utility v))) (set! v hijo)) v)
 
@@ -74,29 +75,33 @@
 (define (get-ficha tablero x y)(if (or (< x 0)(< y 0)(> x 8)(> y 8)) +inf.0 (list-ref (list-ref tablero y) x)))
 (define (generar-arbol-de-tableros nodo t [profundidad 0])
     (if (<= profundidad PROFUNDIDAD-IA);for _ in range(profundidad):
-        (for ([x (build-list 9 values)][y (build-list 9 values)]#:when (= (get-ficha Tablero x y) t))
+        (for ([x (build-list 9 values)][y (build-list 9 values)]#:when (= (get-ficha (Nodo-estadoTablero nodo) x y) t))
             (for ([posible-nuevo-estado (posibles-movimientos (Nodo-estadoTablero nodo) x y)])
                 (generar-arbol-de-tableros (InsertarHijo nodo posible-nuevo-estado) t (+ profundidad 1))))
-        (if (= profundidad 0) nodo null)))
+        nodo)) 
 (define (escoger-jugada tablero t)
   (Alpha-Beta-Search (generar-arbol-de-tableros (Nodo (list) tablero -inf.0) t)))
 (define (alguien-ganó?)
   (define bandera #f)
   (for ([y (list 0 1 2 3)])
     (for ([x (for/list ([i (build-list (- 4 y) values)])(- 8 i))]
-          #:when (distinct? 2 (get-ficha Tablero x y)))
+          #:final (distinct? 2 (get-ficha Tablero x y)))
       (set! bandera #t)))
   (if (not bandera) 2 (let ()
       (for ([y (list 8 7 6 5)])
-        (for ([x (build-list (- 4 y) values)]
-              #:when (distinct? 1 (get-ficha Tablero x y)))
+        (for ([x (build-list (- y 4) values)]
+              #:final (distinct? 1 (get-ficha Tablero x y)))
           (set! bandera #t)))
-      (if (not bandera) 1 #f))))
+      (if (not bandera) 1 #f)))) 
 (define (simulador-damas-chinas)
   (while (not (alguien-ganó?))
+        (sleep 2)
         (set! Tablero (Nodo-estadoTablero (escoger-jugada Tablero 1)))
+        (display "Jugada jugador 1:\n")(mostrar-movimientos (list Tablero))
         (unless (= 1 (alguien-ganó?))
+          (sleep 2)
           (set! Tablero (Nodo-estadoTablero (escoger-jugada Tablero 2)))
+          (display "Jugada jugador 2:\n")(mostrar-movimientos (list Tablero))
           (when (= 2 (alguien-ganó?))(break))))
   (if (= 1 (alguien-ganó?))"Ganó el jugador 1\n" "Ganó el jugador 2\n"))
 
@@ -110,9 +115,11 @@
     (for/list ([i '(-1 1)] )
         (for/list([j (list (+ x i)(+ x i) x)]
                     [k (list (+ y i) y (+ y i))]
-                    #:unless (or (contains posicionesVisitadas (list (saltando1 x j) (saltando1 y k)))
+                    #:unless (or (and (= 0 (get-ficha tablero j k))
+                                      (contains posicionesVisitadas j k))
                                  (and (distinct? 0 (get-ficha tablero j k))
-                                      (or (< (saltando1 x j) 0)
+                                      (or (contains posicionesVisitadas (list (saltando1 x j) (saltando1 y k)))
+                                          (< (saltando1 x j) 0)
                                           (< (saltando1 y k) 0) 
                                           (> (saltando1 x j) 8)
                                           (> (saltando1 y k) 8))))
@@ -152,5 +159,5 @@
     copia))
 ;funcion para mostrar los posibles movimientos:
 (define (mostrar-movimientos movimientos)(for ([r movimientos])(for ([l r])(display l)(display "\n"))(display "\n")))
-(mostrar-movimientos (posibles-movimientos Tablero 2 8 (list)(list)#t))
 (display "Tablero:\n")(mostrar-movimientos (list Tablero))
+(simulador-damas-chinas)
