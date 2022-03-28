@@ -30,22 +30,22 @@
       (if (not bandera) 1 #f))))
 
 ;Definición de la estructura nodo con hijos, un tablero asociado y su valor de utilidad
-(define-struct Nodo (hijos tablero utilidad) #:transparent #:mutable ) 
-(define (esTerminal? estado) (if (void? estado)(display "Puta madre\n")(empty? (Nodo-hijos estado))))
-(define (InsertarHijo nodo nuevoEstado);Crea un nodo con el nuevo estado de tablero y se lo añade a los hijos, devuelve el hijo insertado
-  (define nuevo-nodo (Nodo (list) nuevoEstado -inf.0))
+(define-struct Nodo (hijos tablero utilidad dueño) #:transparent #:mutable ) 
+(define (esTerminal? estado) (empty? (Nodo-hijos estado)))
+(define (InsertarHijo nodo nuevoEstado dueño);Crea un nodo con el nuevo estado de tablero y se lo añade a los hijos, devuelve el hijo insertado
+  (define nuevo-nodo (Nodo (list) nuevoEstado -inf.0 dueño))
   (set-Nodo-hijos! nodo (append (Nodo-hijos nodo) (list nuevo-nodo)))
   nuevo-nodo)
 
 ;La siguiente función devuelve el nodo del árbol de jugadas que tiene el tablero resultado de hacer minimax con poda alpha beta
 (define (escoger-jugada tablero t)
-  (Alpha-Beta-Search (generar-arbol-de-tableros (Nodo (list) tablero -inf.0) t)))
+  (Alpha-Beta-Search (generar-arbol-de-tableros (Nodo (list) tablero -inf.0 t) t)))
 
 (define (Alpha-Beta-Search nodo) (Result (Nodo-hijos nodo) (MAX nodo -inf.0 +inf.0)))
-(define (Result hijos v) (Nodo-tablero
-  (if (= (Utility (first hijos)(Utility v)))
-      (first hijos)
-      (Result (rest hijos) v))))
+(define (Result hijos v) 
+  (if (= (Utility (first hijos))(Utility v))
+      (Nodo-tablero (first hijos))
+      (Result (rest hijos) v)))
 (define (MAX estado alpha beta)
     (if (esTerminal? estado) estado
         (let ([computedLevel (for/list([hijo (Nodo-hijos estado)])(MIN hijo alpha beta))])
@@ -73,14 +73,14 @@
     (if (null? nodo) 0
     (if (= -inf.0(Nodo-utilidad nodo))
         ((lambda ()
-            (set-Nodo-utilidad! nodo (EvaluarEstado (Nodo-tablero nodo)))
+            (set-Nodo-utilidad! nodo (EvaluarEstado (Nodo-tablero nodo) (Nodo-dueño nodo)))
             (Nodo-utilidad nodo)))
         (Nodo-utilidad nodo))))
-(define (EvaluarEstado tablero)(lambda (jugador)
+(define (EvaluarEstado tablero jugador)
   (define valor 0)
-  (for ([x (build-list 9 values)](for([y (build-list 9 values)]#:when (= (get-ficha tablero x y) jugador))
-    (set! valor (+ valor (distancia x y jugador)))))
-  valor))
+  (for ([x (build-list 9 values)])(for([y (build-list 9 values)]#:unless(= 0 (get-ficha tablero x y)))
+    (set! valor ((if (= (get-ficha tablero x y) jugador) + -) valor (distancia x y (get-ficha tablero x y))))))
+  valor)
 (define (distancia x y jugador)
   (+ (- (if (= 1 jugador) 8 0) x) (- (if (= 1 jugador) 0 8) y)))
 (define (get-ficha tablero x y) (if (or (< x 0)(< y 0)(> x 8)(> y 8)) +inf.0
@@ -91,8 +91,8 @@
     (for ([x (list 0 1 2 3 4 5 6 7 8)])
       (for([y (list 0 1 2 3 4 5 6 7 8)]
            #:when (= (get-ficha (Nodo-tablero nodo) x y) t))
-      (for ([posible-nuevo-estado (posibles-movimientos (Nodo-tablero nodo) x y)])
-        (generar-arbol-de-tableros (InsertarHijo nodo posible-nuevo-estado) (+ (remainder t CANTIDAD-JUGADORES) 1) (+ profundidad 1))))))
+      (for ([posible-nuevo-estado (posibles-movimientos (Nodo-tablero nodo) x y)])(let ([siguiente-turno (+ (remainder t CANTIDAD-JUGADORES) 1)])
+        (generar-arbol-de-tableros (InsertarHijo nodo posible-nuevo-estado siguiente-turno) siguiente-turno (+ profundidad 1)))))))
   nodo)
 ;La siguiente función busca y devuelve en una lista todos los estados de tablero que se pueden obtener de mover la ficha en posición x,y
 ;El primer parámetro condicional es para guardar los sitios visitados y que no se analicen nuevamente.
