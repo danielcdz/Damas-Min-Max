@@ -46,7 +46,7 @@
 ;; datos unicode clave-valor de cada una de las fichas
 (define chess-piece-data
   (hash
-   "A" #\u2727 
+   "A" #\u2727 "x" #\u0000
   "b" #\u2726 ))
 ;; -------------------------------------------------------------
 
@@ -159,11 +159,11 @@
 ;; The pasteboard% that will hold and manage the chess pieces
 (define board (new chess-board%))
 ;; Toplevel window for our application
-(define toplevel (new frame% [label "Chess Board"] [width (* 50 8)] [height (* 50 8)]))
+(define toplevel (new frame% [label "Damas chinas"] [width (* 50 8)] [height (* 50 8)]))
 ;; The canvas which will display the pasteboard contents
 (define canvas (new editor-canvas%
                     [parent toplevel]
-                    [style '(no-hscroll no-vscroll)]
+                    [style '(no-hscroll no-vscroll transparent)]
                     [horizontal-inset 0]
                     [vertical-inset 0]
                     [editor board]))
@@ -190,20 +190,15 @@
 ;     1 2 3 4 5 6 7 8 9
 (list 0 0 0 0 0 1 1 1 1); 1
 (list 0 0 0 0 0 0 1 1 1); 2
-(list 0 0 0 0 0 0 0 1 1); 3
+(list 0 0 2 0 0 0 0 1 1); 3
 (list 0 0 0 0 0 0 0 0 1); 4
-(list 0 0 0 0 0 0 0 0 0); 5
+(list 0 0 0 0 1 0 0 0 0); 5
 (list 2 0 0 0 0 0 0 0 0); 6
 (list 2 2 0 0 0 0 0 0 0); 7
 (list 2 2 2 0 0 0 0 0 0); 8
-(list 2 2 2 2 0 0 0 0 0); 9
+(list 2 2 2 2 0 0 2 0 0); 9
 ))
 
-;(define (EvaluarEstado tablero jugador)
-  ;(define valor 0)
-  ;(for ([x (build-list 9 values)][y (build-list 9 values)]#:when (= (get-ficha Tablero x y) jugador))
-  ;  (set! valor (+ valor (distancia x y jugador))))
- ; valor)
 
 
 (define (tableroToString tablero)
@@ -211,15 +206,39 @@
   (define ficha1 "A")
   (define ficha2 "b")
      (for* ([x (build-list 9 values)][y (build-list 9 values)])
-       (define dato ( list-ref( list-ref tablero x) y))
-       ;(print dato)
-       (if (equal? dato 1) (set! res(string-append res (string-append "b" (string-append (format "~v" x) (format "~v" y))) ))  1)
-       (if (equal? dato 2) (set! res(string-append res (string-append "A" (string-append (format "~v" x) (format "~v" y))) ))  2)
-       
-       ;(print ficha1)
+       (define dato ( list-ref( list-ref tablero y) x))
+
+       (if (equal? dato 1) (set! res(string-append res (string-append "A" (string-append (format "~v" x) (format "~v" y))) ))  1)
+       (if (equal? dato 2) (set! res(string-append res (string-append "b" (string-append (format "~v" x) (format "~v" y))) ))  2)
+
        )(print res)
   res
   )
-;(string-append res (format "~v" x)) (string-append res (format "~v" y))  (set! res(string-append res (format "~v" x))) (set! res (string-append res (format "~v" y))
+
+
+
+
+
+
+
+(define tablero2 (list 
+                  ;     1 2 3 4 5 6 7 8 9
+                  (list 0 0 0 0 0 1 1 1 1); 1
+                  (list 0 0 0 0 0 0 0 1 1); 2
+                  (list 0 0 0 1 0 0 0 0 1); 3
+                  (list 0 0 0 0 0 1 0 0 1); 4
+                  (list 0 0 0 0 0 0 0 0 0); 5
+                  (list 2 0 0 0 0 0 0 0 0); 6
+                  (list 2 0 0 0 0 2 0 0 0); 7
+                  (list 2 2 0 0 0 2 0 0 0); 8
+                  (list 2 2 2 2 0 0 0 0 0); 9
+                  ))
 (tableroToString Tablero)
 (setup-board board (tableroToString Tablero))
+
+(send board erase) ; instruccion para borrar todas las fichas
+(tableroToString tablero2)
+(setup-board board (tableroToString tablero2))
+
+
+
