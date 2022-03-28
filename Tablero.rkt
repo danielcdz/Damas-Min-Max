@@ -42,32 +42,27 @@
   (Alpha-Beta-Search (generar-arbol-de-tableros (Nodo (list) tablero -inf.0 t) t)))
 
 (define (Alpha-Beta-Search nodo) (Result (Nodo-hijos nodo) (MAX nodo -inf.0 +inf.0)))
-(define (Result hijos v) 
+(define (Result hijos v [random-index 0]) 
   (if (= (Utility (first hijos))(Utility v))
-      (Nodo-tablero (first hijos))
-      (Result (rest hijos) v)))
+      (Nodo-tablero (list-ref hijos random-index))
+      (Result (append (take hijos random-index)(drop hijos (+ random-index 1))) v (random (-(length hijos) 1)))))
 (define (MAX estado alpha beta)
     (if (esTerminal? estado) estado
-        (let ([computedLevel (for/list([hijo (Nodo-hijos estado)])(MIN hijo alpha beta))])
-            (define v (first computedLevel))
-            (for ([minedHijo computedLevel]
-                #:final (>= (Utility minedHijo) beta))
-                (if (>= (Utility minedHijo) beta)(display (list minedHijo ">=" beta))'())
+        (let ([v (first (Nodo-hijos estado))])
+            (for ([hijo (rest(Nodo-hijos estado))]
+                #:break (>= (Utility (MIN hijo alpha beta)) beta))(let ([minedHijo (MIN hijo alpha beta)])
                 (set! v (if (>(Utility minedHijo)(Utility v)) minedHijo v))
                 (set-Nodo-utilidad! estado (if (>(Utility minedHijo)(Utility v)) (Utility minedHijo) (Utility v)))
-                (set! alpha (max alpha (Utility v))))
+                (set! alpha (max alpha (Utility v)))))
             v)))
 (define (MIN estado alpha beta) 
-    (if (esTerminal? estado) 
-        estado
-        (let ([computedLevel (for/list ([hijo (Nodo-hijos estado)])(MAX hijo alpha beta))])
-            (define v (first computedLevel))
-            (for ([maxedHijo computedLevel]
-                #:final (<= (Utility maxedHijo) alpha))
-                (if (<= (Utility maxedHijo) alpha)(display(list maxedHijo "<=" alpha))'())
+    (if (esTerminal? estado) estado
+        (let ([v (first (Nodo-hijos estado))])
+            (for ([hijo (rest(Nodo-hijos estado))]
+                #:break (<= (Utility (MAX hijo alpha beta)) alpha))(let ([ maxedHijo (MAX hijo alpha beta)])
                 (set! v (if (<(Utility maxedHijo)(Utility v)) maxedHijo v))
                 (set-Nodo-utilidad! estado (if (<(Utility maxedHijo)(Utility v))(Utility maxedHijo)(Utility v)))
-                (set! beta (min beta (Utility v))))
+                (set! beta (min beta (Utility v)))))
             v)))
 (define (Utility nodo)
     (if (null? nodo) 0
