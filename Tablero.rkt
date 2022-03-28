@@ -6,7 +6,7 @@
 (list 0 0 0 0 0 0 0 1 1); 3
 (list 0 0 0 0 0 0 0 0 1); 4
 (list 0 0 0 0 0 0 0 0 0); 5
-(list 2 0 0 0 0 0 0 0 0); 6
+(list 2 0 0 0 0 0 0 0 0); 6  
 (list 2 2 0 0 0 0 0 0 0); 7
 (list 2 2 2 0 0 0 0 0 0); 8
 (list 2 2 2 2 0 0 0 0 0); 9
@@ -41,11 +41,11 @@
 (define (escoger-jugada tablero t)
   (Alpha-Beta-Search (generar-arbol-de-tableros (Nodo (list) tablero -inf.0 t) t)))
 
-(define (Alpha-Beta-Search nodo) (Result (Nodo-hijos nodo) (MAX nodo -inf.0 +inf.0)))
-(define (Result hijos v [random-index 0]) 
+(define (Alpha-Beta-Search nodo) (Result (randomize(Nodo-hijos nodo)) (MAX nodo -inf.0 +inf.0)))
+(define (Result hijos v) 
   (if (= (Utility (first hijos))(Utility v))
-      (Nodo-tablero (list-ref hijos random-index))
-      (Result (append (take hijos random-index)(drop hijos (+ random-index 1))) v (random (-(length hijos) 1)))))
+      (Nodo-tablero(first hijos))
+      (Result (rest hijos) v)))
 (define (MAX estado alpha beta)
     (if (esTerminal? estado) estado
         (let ([v (first (Nodo-hijos estado))])
@@ -77,7 +77,7 @@
     (set! valor ((if (= (get-ficha tablero x y) jugador) + -) valor (distancia x y (get-ficha tablero x y))))))
   valor)
 (define (distancia x y jugador)
-  (+ (- (if (= 1 jugador) 8 0) x) (- (if (= 1 jugador) 0 8) y)))
+  (+ (abs(- x (if (= 1 jugador) 8 0))) (abs(- y (if (= 1 jugador) 0 8)))))
 (define (get-ficha tablero x y) (if (or (< x 0)(< y 0)(> x 8)(> y 8)) +inf.0
   (list-ref (list-ref tablero y) x)))
 
@@ -126,6 +126,11 @@
     copia))
 ;funcion para mostrar los posibles movimientos:
 (define (mostrar-movimientos movimientos)(for ([r movimientos])(for ([l r])(display l)(display "\n"))(display "\n")))
+;funcion para ordenar aleatoriamente una lista
+(define (randomize lista)(define salida '())
+  (for ([elemento lista])(let ([r (if (empty? salida)0(random (length salida)))])
+    (set! salida (append (take lista r)(list elemento)(drop lista (+ r 1))))))
+  salida)
 ;Función que simula una partida IA vs IA
 (define (simulador-damas-chinas tablero turno)
   (display "Tablero:\n")(mostrar-movimientos (list tablero))
